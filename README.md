@@ -139,6 +139,26 @@ kubectl get pods -A
 * Add Terraform remote state in S3
 * Add monitoring with Prometheus and Grafana
 
+
+## Screenshots
+
+### Amazon EKS Cluster
+
+![Amazon EKS Cluster](docs/screenshots/eks-cluster.png)
+
+### Kubernetes Worker Nodes
+
+![Kubernetes Nodes](docs/screenshots/kubectl-get-nodes.png)
+
+### Kubernetes System Pods
+
+![Kubernetes Pods](docs/screenshots/kubectl-get-pods.png)
+
+### Infrastructure Cleanup
+
+![Terraform Destroy](docs/screenshots/terraform-destroy.png)
+
+
 ---
 
 ## Author
