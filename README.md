@@ -164,7 +164,7 @@ kubectl get pods -A
 ## Author
 
 Olawale Azeez
-
+AWS Certified Developer
 AWS Certified Solutions Architect – Associate
 
 AWS Certified Cloud Practitioner
