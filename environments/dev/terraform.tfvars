@@ -30,3 +30,9 @@ node_instance_types = [
 node_desired_size = 2
 node_min_size     = 2
 node_max_size     = 3
+
+cluster_endpoint_public_access = false
+
+enable_cluster_creator_admin_permissions = true
+
+node_disk_size = 30

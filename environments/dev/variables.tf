@@ -70,3 +70,33 @@ variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
 }
+
+variable "cluster_endpoint_public_access" {
+  description = "Enable public access to the EKS API endpoint"
+  type        = bool
+  default     = false
+}
+
+variable "cluster_endpoint_public_access_cidrs" {
+  description = "CIDR blocks allowed to access the public EKS API endpoint"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_cluster_creator_admin_permissions" {
+  description = "Grant the Terraform cluster creator administrator access"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_admin_principal_arn" {
+  description = "Optional IAM principal granted explicit EKS administrator access"
+  type        = string
+  default     = null
+}
+
+variable "node_disk_size" {
+  description = "Encrypted EKS worker root volume size in GiB"
+  type        = number
+  default     = 30
+}
