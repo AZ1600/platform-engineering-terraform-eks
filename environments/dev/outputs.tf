@@ -20,15 +20,15 @@ output "cluster_endpoint" {
 
 output "vpc_id" {
   description = "VPC ID used by the platform"
-  value       = module.vpc.vpc_id
+  value       = module.network.vpc_id
 }
 
 output "private_subnet_ids" {
   description = "Private subnet IDs used by Amazon EKS"
-  value       = module.vpc.private_subnets
+  value       = module.network.private_subnet_ids
 }
 
 output "public_subnet_ids" {
   description = "Public subnet IDs created for the environment"
-  value       = module.vpc.public_subnets
+  value       = module.network.public_subnet_ids
 }

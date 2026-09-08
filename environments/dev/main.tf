@@ -1,52 +1,31 @@
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.8"
+module "network" {
+  source = "../../modules/network"
 
   name = "${local.name_prefix}-vpc"
   cidr = var.vpc_cidr
 
-  azs = var.availability_zones
-
-  private_subnets = var.private_subnets
-  public_subnets  = var.public_subnets
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  availability_zones = var.availability_zones
+  private_subnets    = var.private_subnets
+  public_subnets     = var.public_subnets
 
   tags = local.common_tags
 }
 
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.31"
+  source = "../../modules/eks"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  enable_cluster_creator_admin_permissions = true
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnet_ids
 
-  cluster_endpoint_public_access  = true
-  cluster_endpoint_private_access = true
+  environment = var.environment
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
-
-  eks_managed_node_groups = {
-    default = {
-      desired_size = var.node_desired_size
-      min_size     = var.node_min_size
-      max_size     = var.node_max_size
-
-      instance_types = var.node_instance_types
-
-      labels = {
-        environment = var.environment
-        workload    = "platform"
-      }
-
-      tags = local.common_tags
-    }
-  }
+  node_instance_types = var.node_instance_types
+  node_desired_size   = var.node_desired_size
+  node_min_size       = var.node_min_size
+  node_max_size       = var.node_max_size
 
   tags = local.common_tags
 }
