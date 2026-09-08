@@ -1,0 +1,95 @@
+---
+name: Terraform CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - ".terraform.lock.hcl"
+      - "**/.terraform.lock.hcl"
+      - ".github/workflows/terraform-ci.yml"
+
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - ".terraform.lock.hcl"
+      - "**/.terraform.lock.hcl"
+      - ".github/workflows/terraform-ci.yml"
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  CHECKPOINT_DISABLE: "true"
+
+jobs:
+  terraform-format:
+    name: Terraform formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+
+  bootstrap-validation:
+    name: Bootstrap validation
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: bootstrap
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Initialize without backend
+        run: terraform init -backend=false
+
+      - name: Validate bootstrap configuration
+        run: terraform validate
+
+
+  dev-environment-validation:
+    name: Dev environment validation
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: environments/dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Initialize without backend
+        run: terraform init -backend=false
+
+      - name: Validate dev environment
+        run: terraform validate
