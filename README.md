@@ -10,7 +10,7 @@ The current hardened configuration has been validated with Terraform plan and CI
 
 ## Project Overview
 
-![Terraform AWS EKS Platform Overview](docs/screenshots/project-overview.png)
+![Terraform AWS EKS Platform Overview](docs/screenshots/projects-overview.png)
 
 ---
 
