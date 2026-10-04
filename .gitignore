@@ -2,6 +2,10 @@
 *.tfstate
 *.tfstate.backup
 
+# Reusable modules are not Terraform root modules.
+# Their locally generated dependency lock files are not committed.
+modules/**/.terraform.lock.hcl
+
 .vscode/
 .DS_Store
 *.tfplan
