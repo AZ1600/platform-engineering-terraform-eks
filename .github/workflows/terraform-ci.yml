@@ -12,6 +12,7 @@ on:
       - ".terraform.lock.hcl"
       - "**/.terraform.lock.hcl"
       - ".github/workflows/terraform-ci.yml"
+      - ".github/workflows/terraform-plan.yml"
 
   push:
     branches:
@@ -23,6 +24,7 @@ on:
       - ".terraform.lock.hcl"
       - "**/.terraform.lock.hcl"
       - ".github/workflows/terraform-ci.yml"
+      - ".github/workflows/terraform-plan.yml"
 
 permissions:
   contents: read
