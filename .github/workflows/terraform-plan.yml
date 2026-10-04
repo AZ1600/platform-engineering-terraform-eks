@@ -1,0 +1,119 @@
+---
+name: Terraform AWS Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_plan:
+        description: "Run a read-only Terraform plan for the dev environment"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-plan-dev
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: "true"
+  CHECKPOINT_DISABLE: "true"
+  AWS_REGION: eu-west-2
+
+jobs:
+  plan:
+    name: Terraform dev plan
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      inputs.confirm_plan == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: environments/dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Configure AWS credentials with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-terraform-plan
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialize Terraform remote state
+        run: |
+          terraform init \
+            -reconfigure \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Validate Terraform
+        run: terraform validate
+
+      - name: Create Terraform plan
+        id: plan
+        shell: bash
+        run: |
+          set +e
+
+          terraform plan \
+            -input=false \
+            -lock-timeout=60s \
+            -detailed-exitcode \
+            -out=tfplan
+
+          exit_code=$?
+
+          set -e
+
+          case "${exit_code}" in
+            0)
+              echo "has_changes=false" >> "${GITHUB_OUTPUT}"
+              echo "Terraform plan completed with no changes."
+              ;;
+            2)
+              echo "has_changes=true" >> "${GITHUB_OUTPUT}"
+              echo "Terraform plan completed successfully with proposed changes."
+              ;;
+            *)
+              echo "Terraform plan failed." >&2
+              exit "${exit_code}"
+              ;;
+          esac
+
+      - name: Show Terraform plan
+        run: terraform show -no-color tfplan
+
+      - name: Write job summary
+        shell: bash
+        run: |
+          {
+            echo "## Terraform Plan"
+            echo
+            echo "- Environment: \`dev\`"
+            echo "- AWS region: \`${AWS_REGION}\`"
+            echo "- Ref: \`${GITHUB_REF}\`"
+            echo "- Proposed changes: \`${{ steps.plan.outputs.has_changes }}\`"
+            echo
+            echo "This workflow performs **plan only**."
+            echo
+            echo "No \`terraform apply\` step exists in this workflow."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Remove local plan file
+        if: always()
+        run: rm -f tfplan
