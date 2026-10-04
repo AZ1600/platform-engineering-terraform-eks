@@ -8,6 +8,7 @@ on:
     paths:
       - "**/*.tf"
       - "**/*.tfvars"
+      - "**/*.tftest.hcl"
       - ".terraform.lock.hcl"
       - "**/.terraform.lock.hcl"
       - ".github/workflows/terraform-ci.yml"
@@ -18,6 +19,7 @@ on:
     paths:
       - "**/*.tf"
       - "**/*.tfvars"
+      - "**/*.tftest.hcl"
       - ".terraform.lock.hcl"
       - "**/.terraform.lock.hcl"
       - ".github/workflows/terraform-ci.yml"
@@ -46,7 +48,6 @@ jobs:
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive
 
-
   bootstrap-validation:
     name: Bootstrap validation
     runs-on: ubuntu-latest
@@ -70,7 +71,6 @@ jobs:
       - name: Validate bootstrap configuration
         run: terraform validate
 
-
   dev-environment-validation:
     name: Dev environment validation
     runs-on: ubuntu-latest
@@ -93,3 +93,32 @@ jobs:
 
       - name: Validate dev environment
         run: terraform validate
+
+  module-tests:
+    name: Terraform module tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Initialize EKS module
+        working-directory: modules/eks
+        run: terraform init -backend=false
+
+      - name: Test EKS module guardrails
+        working-directory: modules/eks
+        run: terraform test
+
+      - name: Initialize network module
+        working-directory: modules/network
+        run: terraform init -backend=false
+
+      - name: Test network module guardrails
+        working-directory: modules/network
+        run: terraform test
