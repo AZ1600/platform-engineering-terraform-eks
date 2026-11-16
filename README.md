@@ -448,9 +448,10 @@ This moves important safety checks closer to the module boundary.
 The EKS module rejects:
 
 ```text
+Both private and public EKS API endpoints disabled
 Public EKS API access without restricted CIDRs
-0.0.0.0/0 public endpoint exposure
-::/0 public endpoint exposure
+Malformed public API CIDR allow-list entries
+Unrestricted /0 public API exposure (including noncanonical ranges)
 Desired node count below minimum
 Desired node count above maximum
 Negative minimum node count

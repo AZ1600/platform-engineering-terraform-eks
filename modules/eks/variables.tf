@@ -76,6 +76,11 @@ variable "cluster_endpoint_private_access" {
   description = "Enable private access to the Amazon EKS API endpoint"
   type        = bool
   default     = true
+
+  validation {
+    condition     = var.cluster_endpoint_private_access || var.cluster_endpoint_public_access
+    error_message = "At least one EKS API endpoint access mode (private or public) must be enabled."
+  }
 }
 
 variable "cluster_endpoint_public_access" {
@@ -94,12 +99,15 @@ variable "cluster_endpoint_public_access_cidrs" {
       !var.cluster_endpoint_public_access ||
       (
         length(var.cluster_endpoint_public_access_cidrs) > 0 &&
-        !contains(var.cluster_endpoint_public_access_cidrs, "0.0.0.0/0") &&
-        !contains(var.cluster_endpoint_public_access_cidrs, "::/0")
+        alltrue([
+          for cidr in var.cluster_endpoint_public_access_cidrs :
+          can(cidrhost(cidr, 0)) &&
+          try(tonumber(split("/", cidr)[1]) > 0, false)
+        ])
       )
     )
 
-    error_message = "When public EKS API access is enabled, at least one restricted CIDR must be supplied and unrestricted 0.0.0.0/0 or ::/0 access is not allowed."
+    error_message = "When public EKS API access is enabled, supply valid restricted IPv4 or IPv6 CIDRs; unrestricted /0 ranges are not allowed."
   }
 }
 
