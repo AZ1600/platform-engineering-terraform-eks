@@ -36,6 +36,55 @@ variables {
   }
 }
 
+run "reject_all_eks_api_endpoints_disabled" {
+  command = plan
+
+  variables {
+    cluster_endpoint_private_access = false
+    cluster_endpoint_public_access  = false
+  }
+
+  expect_failures = [
+    var.cluster_endpoint_private_access,
+  ]
+}
+
+run "reject_malformed_public_api_cidr" {
+  command = plan
+
+  variables {
+    cluster_endpoint_public_access       = true
+    cluster_endpoint_public_access_cidrs = ["not-a-cidr"]
+  }
+
+  expect_failures = [
+    var.cluster_endpoint_public_access_cidrs,
+  ]
+}
+
+run "reject_noncanonical_unrestricted_public_api_cidr" {
+  command = plan
+
+  variables {
+    cluster_endpoint_public_access       = true
+    cluster_endpoint_public_access_cidrs = ["0.0.0.1/0"]
+  }
+
+  expect_failures = [
+    var.cluster_endpoint_public_access_cidrs,
+  ]
+}
+
+run "accept_restricted_public_api_cidr" {
+  command = plan
+
+  variables {
+    cluster_endpoint_private_access      = false
+    cluster_endpoint_public_access       = true
+    cluster_endpoint_public_access_cidrs = ["198.51.100.0/24"]
+  }
+}
+
 run "reject_public_api_without_cidrs" {
   command = plan
 
